@@ -11,6 +11,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       python3 python3-venv python3-pip curl \
       && rm -rf /var/lib/apt/lists/*
 
+#Download and install prebuilt OpenVINO
+RUN wget ${OPENVINO_PACKAGE_URL} -O openvino.tgz && \
+    tar -xzf openvino.tgz && \
+    rm openvino.tgz && \
+    sed -i 's/apt-get install /apt-get install -y /g' l_openvino_toolkit_ubuntu22_${OPENVINO_VERSION}.*/install_dependencies/install_openvino_dependencies.sh && \
+    /bin/bash l_openvino_toolkit_ubuntu22_${OPENVINO_VERSION}.*/install_dependencies/install_openvino_dependencies.sh && \
+    mkdir -p /opt/intel && \
+    mv l_openvino_toolkit_ubuntu22_${OPENVINO_VERSION}.* /opt/intel/openvino_${OPENVINO_VERSION}
+
+#Set OpenVINO environment variables
+ENV INTEL_OPENVINO_DIR=/opt/intel/openvino_${OPENVINO_VERSION}
+ENV PATH=$INTEL_OPENVINO_DIR/bin:$PATH
+ENV LD_LIBRARY_PATH=$INTEL_OPENVINO_DIR/runtime/lib/intel64:$LD_LIBRARY_PATH
+
 # --- build whisper.cpp (Intel oneAPI SYCL) ---
 WORKDIR /whisper.cpp
 RUN git clone https://github.com/ggerganov/whisper.cpp.git . \
