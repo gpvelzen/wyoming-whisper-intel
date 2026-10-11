@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM intel/oneapi-basekit:latest
+FROM intel/oneapi-toolkit:latest
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
