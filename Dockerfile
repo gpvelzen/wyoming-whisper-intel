@@ -49,8 +49,8 @@ RUN git clone https://github.com/ser/wyoming-whisper-api-client.git \
 ENV PATH="/wyoming-whisper-api-client/.venv/bin:${PATH}"
 
 # copy the startup script
-COPY start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh && mkdir -p /models /var/log/whispercpp
+#COPY start.sh /usr/local/bin/start.sh
+#RUN chmod +x /usr/local/bin/start.sh && mkdir -p /models /var/log/whispercpp
 
 # --- sane GPU defaults ---
 ENV ONEAPI_DEVICE_SELECTOR=level_zero:gpu \
