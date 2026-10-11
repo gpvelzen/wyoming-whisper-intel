@@ -20,10 +20,13 @@ RUN wget ${OPENVINO_PACKAGE_URL} -O openvino.tgz && \
     mkdir -p /opt/intel && \
     mv l_openvino_toolkit_ubuntu22_${OPENVINO_VERSION}.* /opt/intel/openvino_${OPENVINO_VERSION}
 
-#Set OpenVINO environment variables
+# --- Set OpenVINO environment variables
 ENV INTEL_OPENVINO_DIR=/opt/intel/openvino_${OPENVINO_VERSION}
 ENV PATH=$INTEL_OPENVINO_DIR/bin:$PATH
 ENV LD_LIBRARY_PATH=$INTEL_OPENVINO_DIR/runtime/lib/intel64:$LD_LIBRARY_PATH
+
+# --- Clone the whisper.cpp repository
+RUN git clone https://github.com/ggerganov/whisper.cpp.git /whisper.cpp
 
 # --- Build whisper.cpp with OpenVINO support
 WORKDIR /whisper.cpp
