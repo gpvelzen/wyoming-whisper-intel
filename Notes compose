@@ -1,0 +1,15 @@
+services:
+  wyoming-whisper-openvino:
+    build: .
+    container_name: wyoming-whisper-openvino
+    ports:
+      - "7891:7891"
+    environment:
+      - ONEAPI_DEVICE_SELECTOR=level_zero:gpu
+      - WHISPER_MODEL=small              # options: tiny, base, small, medium, large-v3
+      - WHISPER_LANG=en
+    volumes:
+      - ./whisper_models:/models         # Persists downloaded models outside container
+    devices:
+      - /dev/dri:/dev/dri                # Direct access to Intel Hardware Acceleration
+    restart: unless-stopped
