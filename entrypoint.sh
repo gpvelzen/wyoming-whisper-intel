@@ -35,11 +35,11 @@ until curl -s -o /dev/null "http://${WHISPER_HTTP_HOST}:${WHISPER_HTTP_PORT}/"; 
 done
 echo "✅ whisper-server is healthy and ready!"
 
-# 5. Execute Wyoming client bridge as the primary foreground container thread
-echo "🌉 Launching Wyoming API Bridge..."
-exec python3 -m wyoming_whisper_api_client \
-    --uri "$WYOMING_URI" \
-    --whisper-uri "http://${WHISPER_HTTP_HOST}:${WHISPER_HTTP_PORT}" \
-    --model-name "$WHISPER_MODEL" \
-    --beam-size "$WHISPER_BEAM_SIZE" \
-    --language "$WHISPER_LANG"
+
+
+# 5. immediately start the Wyoming bridge in the foreground
+cd /wyoming-whisper-api-client
+source .venv/bin/activate
+exec ./script/run \
+  --uri "${WYOMING_URI}" \
+  --api "http://${WHISPER_HTTP_HOST}:${WHISPER_HTTP_PORT}/inference"
