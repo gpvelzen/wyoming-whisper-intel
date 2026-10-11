@@ -21,7 +21,8 @@ echo "🚀 Starting whisper.cpp HTTP server on GPU..."
     -m "$MODEL_PATH" \
     --host "$WHISPER_HTTP_HOST" \
     --port "$WHISPER_HTTP_PORT" \
-    -l "$WHISPER_LANG" &
+    -l "$WHISPER_LANG" \
+    --ov-e-device GPU &
 WHISPER_PID=$!
 
 # 4. Wait for local HTTP service to compile models and respond
