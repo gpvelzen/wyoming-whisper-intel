@@ -25,16 +25,12 @@ ENV INTEL_OPENVINO_DIR=/opt/intel/openvino_${OPENVINO_VERSION}
 ENV PATH=$INTEL_OPENVINO_DIR/bin:$PATH
 ENV LD_LIBRARY_PATH=$INTEL_OPENVINO_DIR/runtime/lib/intel64:$LD_LIBRARY_PATH
 
-# --- build whisper.cpp (Intel oneAPI SYCL) ---
+# --- Build whisper.cpp with OpenVINO support
 WORKDIR /whisper.cpp
-RUN git clone https://github.com/ggerganov/whisper.cpp.git . \
- && git reset --hard v1.9.5 \
- && cmake -B build \
-      -DGGML_SYCL=ON \
-      -DGGML_SYCL_F16=ON \
-      -DCMAKE_C_COMPILER=icx \
-      -DCMAKE_CXX_COMPILER=icpx \
- && cmake --build build -j --config Release
+RUN /bin/bash -c "source $INTEL_OPENVINO_DIR/setupvars.sh && \
+    cmake -B build -DWHISPER_OPENVINO=1 -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build build --config Release && \
+    ls -l build/bin"
 
 # --- wyoming bridge (API client) ---
 WORKDIR /
