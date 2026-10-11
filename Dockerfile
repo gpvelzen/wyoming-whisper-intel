@@ -19,10 +19,10 @@ ENV OPENVINO_PACKAGE_URL=https://storage.openvinotoolkit.org/repositories/openvi
 RUN wget ${OPENVINO_PACKAGE_URL} -O openvino.tgz && \
     tar -xzf openvino.tgz && \
     rm openvino.tgz && \
-    sed -i 's/apt-get install /apt-get install -y /g' l_openvino_toolkit_ubuntu24_${OPENVINO_VERSION}.*/install_dependencies/install_openvino_dependencies.sh && \
-    /bin/bash l_openvino_toolkit_ubuntu24_${OPENVINO_VERSION}.*/install_dependencies/install_openvino_dependencies.sh && \
+    sed -i 's/apt-get install /apt-get install -y /g' openvino_toolkit_ubuntu24_${OPENVINO_VERSION}.*/install_dependencies/install_openvino_dependencies.sh && \
+    /bin/bash openvino_toolkit_ubuntu24_${OPENVINO_VERSION}.*/install_dependencies/install_openvino_dependencies.sh && \
     mkdir -p /opt/intel && \
-    mv l_openvino_toolkit_ubuntu24_${OPENVINO_VERSION}.* /opt/intel/openvino_${OPENVINO_VERSION}
+    mv openvino_toolkit_ubuntu24_${OPENVINO_VERSION}.* /opt/intel/openvino_${OPENVINO_VERSION}
 
 # --- Set OpenVINO environment variables
 ENV INTEL_OPENVINO_DIR=/opt/intel/openvino_${OPENVINO_VERSION}
