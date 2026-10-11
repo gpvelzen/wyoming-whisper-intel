@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       python3 python3-venv python3-pip curl \
       && rm -rf /var/lib/apt/lists/*
 
-ENV OPENVINO_VERSION=2023.0.0
-ENV OPENVINO_PACKAGE_URL=https://storage.openvinotoolkit.org/repositories/openvino/packages/2023.0/linux/l_openvino_toolkit_ubuntu22_2023.0.0.10926.b4452d56304_x86_64.tgz
+ENV OPENVINO_VERSION=2026.4.1
+ENV OPENVINO_PACKAGE_URL=https://storage.openvinotoolkit.org/repositories/openvino/packages/2026.4.1/linux/openvino_toolkit_ubuntu24_2026.4.1.22982.07f9c262b05_x86_64.tgz
 
 
 #Download and install prebuilt OpenVINO
