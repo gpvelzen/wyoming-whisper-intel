@@ -28,7 +28,7 @@ ENV LD_LIBRARY_PATH=$INTEL_OPENVINO_DIR/runtime/lib/intel64:$LD_LIBRARY_PATH
 # --- build whisper.cpp (Intel oneAPI SYCL) ---
 WORKDIR /whisper.cpp
 RUN git clone https://github.com/ggerganov/whisper.cpp.git . \
- && git reset --hard v1.7.4 \
+ && git reset --hard v1.9.5 \
  && cmake -B build \
       -DGGML_SYCL=ON \
       -DGGML_SYCL_F16=ON \
