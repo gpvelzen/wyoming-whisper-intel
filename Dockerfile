@@ -3,9 +3,7 @@ FROM intel/oneapi-toolkit:latest
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-
-# --- base tools ---
+# --- base tools & dependencies optimization ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
       git cmake build-essential ca-certificates wget \
       python3 python3-venv python3-pip curl \
@@ -14,8 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV OPENVINO_VERSION=2026.4.1
 ENV OPENVINO_PACKAGE_URL=https://storage.openvinotoolkit.org/repositories/openvino/packages/2026.4.1/linux/openvino_toolkit_ubuntu24_2026.4.1.22982.07f9c262b05_x86_64.tgz
 
-
-#Download and install prebuilt OpenVINO
+# Download and install prebuilt OpenVINO
 RUN wget ${OPENVINO_PACKAGE_URL} -O openvino.tgz && \
     tar -xzf openvino.tgz && \
     rm openvino.tgz && \
@@ -29,15 +26,12 @@ ENV INTEL_OPENVINO_DIR=/opt/intel/openvino_${OPENVINO_VERSION}
 ENV PATH=$INTEL_OPENVINO_DIR/bin:$PATH
 ENV LD_LIBRARY_PATH=$INTEL_OPENVINO_DIR/runtime/lib/intel64:$LD_LIBRARY_PATH
 
-# --- Clone the whisper.cpp repository
+# --- Clone and Build whisper.cpp with OpenVINO support
 RUN git clone https://github.com/ggerganov/whisper.cpp.git /whisper.cpp
-
-# --- Build whisper.cpp with OpenVINO support
 WORKDIR /whisper.cpp
 RUN /bin/bash -c "source $INTEL_OPENVINO_DIR/setupvars.sh && \
     cmake -B build -DWHISPER_OPENVINO=1 -DCMAKE_BUILD_TYPE=Release && \
-    cmake --build build --config Release && \
-    ls -l build/bin"
+    cmake --build build --config Release"
 
 # --- wyoming bridge (API client) ---
 WORKDIR /
@@ -48,53 +42,28 @@ RUN git clone https://github.com/ser/wyoming-whisper-api-client.git \
 # Make sure the repo's venv bins are easily reachable when debugging
 ENV PATH="/wyoming-whisper-api-client/.venv/bin:${PATH}"
 
-# copy the startup script
-#COPY start.sh /usr/local/bin/start.sh
-#RUN chmod +x /usr/local/bin/start.sh && mkdir -p /models /var/log/whispercpp
-
-# --- sane GPU defaults ---
-ENV ONEAPI_DEVICE_SELECTOR=level_zero:gpu \
-    ZE_ENABLE_PCI_ID_DEVICE_ORDER=1
-
-# --- configurable defaults (override in compose) ---
+# --- Sane GPU & Service Defaults ---
 ENV ONEAPI_DEVICE_SELECTOR=level_zero:gpu \
     ZE_ENABLE_PCI_ID_DEVICE_ORDER=1 \
     WHISPER_MODEL=small \
     WHISPER_LANG=en \
     WHISPER_BEAM_SIZE=5 \
-    WHISPER_HTTP_HOST=0.0.0.0 \
+    WHISPER_HTTP_HOST=127.0.0.1 \
     WHISPER_HTTP_PORT=8910 \
     WYOMING_URI=tcp://0.0.0.0:7891 \
-    MODEL_BASE_URL=https://huggingface.co/ggerganov/whisper.cpp/resolve/main
+    MODEL_BASE_URL=https://huggingface.co/ggerganov/whisper.cpp/resolve/main \
+    MODELS_DIR=/models
 
-# Only expose Wyoming port; whisper HTTP stays internal
+RUN mkdir -p /models
+
+# Expose Wyoming port for Home Assistant
 EXPOSE 7891
 
-HEALTHCHECK --start-period=60s --interval=30s --timeout=5s --retries=5 \
-  CMD sh -lc '\
-    url="http://${WHISPER_HTTP_HOST}:${WHISPER_HTTP_PORT}/"; \
-    printf "HC url=%s ... " "$url" >&2; \
-    code=$(curl -sS -o /dev/null -w "%{http_code}" "$url" || echo 000); \
-    echo "status=$code" >&2; \
-    [ "$code" != 000 ] && [ "$code" -lt 500 ] || exit 1'
+HEALTHCHECK --start-period=90s --interval=30s --timeout=5s --retries=3 \
+  CMD curl -f http://127.0.0.1:${WHISPER_HTTP_PORT}/ || exit 1
 
-#Create entrypoint script
-RUN echo '#!/bin/bash\n\
-#Save the current positional parameters\n\
-original_params=("$@")\n\
-\n\
-#Source the OpenVINO setup script\n\
-source /opt/intel/openvino_${OPENVINO_VERSION}/setupvars.sh\n\
-\n\
-#Restore the original positional parameters\n\
-set -- "${original_params[@]}"\n\
-\n\
-#Debug: Print the arguments to verify\n\
-echo "Running whisper-server with args: $@"\n\
-\n\
-#Execute the whisper-server with the original arguments\n\
-exec /whisper.cpp/build/bin/whisper-server "$@"' > /entrypoint.sh && \
-chmod +x /entrypoint.sh
+# Copy orchestrator scripts
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-#Set the entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
