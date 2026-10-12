@@ -3,7 +3,8 @@
 Docker container for wyoming and whisper on intel GPUs. It is built on the intel/oneapi-basekit container.
 including OpenVINO
 
-Manual download the 
+Manual download the openvino models here:
+https://huggingface.co/Intel/whisper.cpp-openvino-models/tree/main
 
 ## Instructions
 
