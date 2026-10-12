@@ -78,5 +78,23 @@ HEALTHCHECK --start-period=60s --interval=30s --timeout=5s --retries=5 \
     echo "status=$code" >&2; \
     [ "$code" != 000 ] && [ "$code" -lt 500 ] || exit 1'
 
+#Create entrypoint script
+RUN echo '#!/bin/bash\n\
+#Save the current positional parameters\n\
+original_params=("$@")\n\
+\n\
+#Source the OpenVINO setup script\n\
+source /opt/intel/openvino_${OPENVINO_VERSION}/setupvars.sh\n\
+\n\
+#Restore the original positional parameters\n\
+set -- "${original_params[@]}"\n\
+\n\
+#Debug: Print the arguments to verify\n\
+echo "Running whisper-server with args: $@"\n\
+\n\
+#Execute the whisper-server with the original arguments\n\
+exec /whisper.cpp/build/bin/whisper-server "$@"' > /entrypoint.sh && \
+chmod +x /entrypoint.sh
+
 #Set the entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
